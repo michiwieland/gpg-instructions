@@ -1,6 +1,0 @@
-sudo dnf install pass
-sudo dnf install ykclient
-sudo dnf install ykpers
-sudo dnf install pcsc-tools
-sudo dnf install opensc
-sudo dnf search ccid

@@ -1,25 +1,61 @@
 Sources: 
-https://www.sidorenko.io/blog/2014/11/04/yubikey-slash-openpgp-smartcards-for-newbies/
-https://www.esev.com/blog/post/2015-01-pgp-ssh-key-on-yubikey-neo/
+
+- https://www.sidorenko.io/blog/2014/11/04/yubikey-slash-openpgp-smartcards-for-newbies/
+- https://www.esev.com/blog/post/2015-01-pgp-ssh-key-on-yubikey-neo/
+- https://emanuelduss.ch/2015/01/sicheres-gnupg-setup-primary-key-offline-speichern/
 
 Master Key erstellen (wird verwendet um Subkeys zu signieren)
-1) gpg2 --gen-key
- a) 4 (RSA sign only)
- b) key 4096
- c) 3Jahre: 3y und mit "Ja" bestätigen
- d) Vorname und Nachname eingeben
- e) email Adresse eingeben
- f) Kommentar kann leer gelassen werden
+1) ```gpg2 --gen-key```
+ a) ```4``` RSA (sign only)
+ b) key ```4096```
+ c) 3 Jahre: ```3y``` und mit "Ja" bestätigen
+ d) ```Vorname Nachname``` eingeben
+ e) ```em@i.l``` Adresse eingeben
+ f) Kommentar sollte leer gelassen werden
  g) Fertig
- h) Passphrase eingeben (Belibige Zahl)
+ h) Passphrase eingeben (Beliebige Zahl)
+
+Subkeys erstellen
+Maximale subkey-grösse: Yubikey Neo: 2048, Yubikey 4: 4096
+
+3) ```gpg2 --expert --edit-key [e-mail adresse oder key id]```
+  Subkey zum signieren
+  a) ```addkey```
+  b) ```4``` (RSA sign only / nur signiren/beglaubigen)
+  c) ```2048``` oder ```4096```
+  d) ```3y```
+  e) Ja (wirklich erzeugen)
+
+  Subkey zum verschlüsseln
+  a) ```addkey```
+  b) ```6``` (encrypt only / RSA nur verschlüsseln)
+  c) ```2048``` or ```4096```
+  d) ```3y```
+  e) Ja (wirklich erzeugen)
+
+  Subkey zum authentifizieren
+  a) ```addkey```
+  b) ```8``` (RSA Set your own capabilities / Leistungsfähigkeit selber einstellen)
+  c) Nur Authentifizieren auswählen: Im Text oberhalb wird angezeigt, was aktuell angewählt ist.
+     Solange togglen bis nur noch Authentification selektiert ist.
+  d) Q (quit)
+  c) ```2048``` or ```4096```
+  d) ```3y```
+  e) Ja (wirklich erzeugen)
+
+  Neue Subkeys speichern
+  a) ```save```
+
 
 Weitere UID hinzufügen (E-Mail Adressen)
-2) gpg2 --edit-key [e-mail adresse oder key id]
+2) ```gpg2 --expert --edit-key [e-mail adresse oder key id]```
   a) adduid
-  b) Vorname und Nachname eingeben
-  c) email Adresse eingeben
+  b) ```Vorname Nachname``` eingeben
+  c) ```em@i.l``` Adresse eingeben
   d) Kommentar kann leer gelassen werden
   g) Fertig
+
+# TODO: Generate revoke keys
 
 Trust Level für neue UID ändern
 3) gpg2 --edit-key [e-mail adresse oder key id]
@@ -27,35 +63,6 @@ Trust Level für neue UID ändern
   b) trust
   c) 5
   d) save
-
-Subkeys erstellen
-3) gpg2 --expert --edit-key [e-mail adresse oder key id]
-  Subkey zum signieren
-  a) addkey
-  b) 4 (RSA nur signiren/beglaubigen)
-  c) 2048 (Ubikey NEO kann keine grösseren Schlüssel)
-  d) 3y
-  e) Ja (wirklich erzeugen)
-
-  Subkey zum verschlüsseln
-  a) addkey
-  b) 6 (RSA nur verschlüsseln)
-  c) 2048 (Ubikey NEO kann keine grösseren Schlüssel)
-  d) 3y
-  e) Ja (wirklich erzeugen)
-
-  Subkey zum authentifizieren
-  a) adkkey
-  b) 8 (RSA Leistungsfähigkeit selber einstellen)
-  c) Nur Authentifizieren auswählen: Im Text oberhalb wird angezeigt, was aktuell angewählt ist.
-     Solange togglen bis nur noch Authentification selektiert ist.
-  d) Q (quit)
-  c) 2048
-  d) 3y
-  e) Ja (wirklich erzeugen)
-
-  Neue Subkeys speichern
-  a) save
 
 Private Keys auf verschlüsseltem USB Stick speichern
 4) gpg2 --export-secret-key --output [filename]
