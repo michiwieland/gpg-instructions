@@ -1,5 +1,8 @@
 
-# Software
+## Software
+To manage and use your GPG-keys and your yubikey, some tools are required.
+
+### Fedora
 
 ```bash
 # GPG
