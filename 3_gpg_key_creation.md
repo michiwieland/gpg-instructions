@@ -187,7 +187,29 @@ TODO: The last section should be documented in a more step-by-step style.
 - recommended configuration of PGP
 - https://sks-keyservers.net/sks-keyservers.netCA.pem
 
-### TODO: Key updates with parcimonie.sh
+### Key updates with parcimonie.sh
+
+```parcimonie.sh``` is a script that periodically updates the GPG-public keys that are stored locally in a secure (and privacy aware) manner.
+
+The following guide assumes that you use a system with systemd.
+
+```bash
+mkdir -p .config/systemd/user/
+
+cat '__EOF__'>> .config/systemd/user/parcimonie.service
+[Unit]
+Description=GnuPG parcimonie key refresher
+
+[Service]
+ExecStart=/usr/bin/parcimonie.sh
+
+[Install]
+WantedBy=default.target
+__EOF__
+
+systemctl --user start parcimonie.service
+systemctl --user enable parcimonie.service
+```
 
 ### TODO: GPG Agent
 
