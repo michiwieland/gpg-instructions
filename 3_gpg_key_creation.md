@@ -182,6 +182,36 @@ TODO: The last section should be documented in a more step-by-step style.
 
 ## Setup on your usual system
 
+### Set systemd environment variables
+
+In the following sections, we assume you are running a system with the `systemd` init daemon (like virtually all modern linux distributions do).
+
+Systemd has the possiblity to start daemons on the login or logout process of your user. To use the commands below, clean environment settings are required:
+
+```bash
+mkdir -p ~/.config/systemd/user/
+
+cat <<<"__EOF__" > ~/.config/systemd/user/
+[Unit]
+Description=User environment
+Before=default.target
+
+[Service]
+Type=oneshot
+ExecStart=-/usr/bin/systemctl --user set-environment \
+        GNUPGHOME=%h/.gnupg \
+        SSH_AUTH_SOCK=/run/user/`id --user`/gnupg/S.gpg-agent.ssh \
+        GPG_AGENT_INFO=/run/user/`id --user`/gnupg/S.gpg-agent.ssh
+
+[Install]
+WantedBy=default.target
+__EOF__
+
+systemctl --user enable env.service
+```
+
+TODO: This configuration is currently only testet on Fedora Linux...
+
 ### TODO: GPG Configuration
 
 - recommended configuration of PGP
@@ -191,12 +221,8 @@ TODO: The last section should be documented in a more step-by-step style.
 
 ```parcimonie.sh``` is a script that periodically updates the GPG-public keys that are stored locally in a secure (and privacy aware) manner.
 
-The following guide assumes that you use a system with systemd.
-
 ```bash
-mkdir -p .config/systemd/user/
-
-cat '__EOF__'>> .config/systemd/user/parcimonie.service
+cat <<<'__EOF__' > .config/systemd/user/parcimonie.service
 [Unit]
 Description=GnuPG parcimonie key refresher
 
@@ -211,7 +237,59 @@ systemctl --user start parcimonie.service
 systemctl --user enable parcimonie.service
 ```
 
-### TODO: GPG Agent
+### GPG agent and scdaemon
+
+The GPG agent stores your Yubikey-PIN for some time, so that you don't have to type it every time you use it. In our setup, we also use this daemon for SSH-Authorization.
+
+The scdaemon handles the communication between the yubikey (SmartCard) and the gpg-daemon.
+
+```bash
+cat <<<'__EOF__' > ~/.gnupg/gpg-agent.conf 
+enable-ssh-support
+default-cache-ttl 900
+default-cache-ttl-ssh 900
+allow-loopback-pinentry
+__EOF__
+
+# Create & enable daemon
+cat <<<'__EOF__' > ~/.config/systemd/user/gpg-agent.service
+[Unit]
+Description=GnuPG private key agent
+IgnoreOnIsolate=true
+
+[Service]
+Type=forking
+ExecStart=/usr/bin/gpg-agent --daemon --enable-ssh-support
+Restart=on-abort
+
+[Install]
+WantedBy=default.target
+__EOF__
+
+systemctl --user start gpg-agent.service
+systemctl --user enable gpg-agent.service
+```
+
+```bash
+# TODO: What does this scdaemon configuration do exactly again?
+cat <<<'__EOF__' > ~/.gnupg/scdaemon.conf
+disable-ccid
+__EOF__
+
+# TODO: How is the extecution of this eventhandler configured?
+cat <<<'__EOF__' > ~/.gnupg/scd-event
+#!/bin/sh
+state=$8
+
+# Make shure that the scdaemon is exitet when the card is removed.
+# scdaemon has the bad habit to crash whenever you remove a card.
+if [ "$state" = "NOCARD" ]; then
+  pkill scdaemon
+fi
+__EOF__
+
+```
+
 
 ### Import & Upload your public key to the keyserver
 
