@@ -1,8 +1,7 @@
-
-## Software
+# Software
 To manage and use your GPG-keys and your yubikey, some tools are required.
 
-### Fedora
+## Fedora
 
 ```bash
 # GPG
@@ -21,7 +20,7 @@ sudo dnf install parcimonie.sh tor tor-arm
 sudo dnf install pass
 ```
 
-### Arch Linux
+## Arch Linux
 
 ```bash
 # GPG

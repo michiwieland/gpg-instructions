@@ -1,3 +1,5 @@
+# TODO: GPG key signing
+
 1) gpg2 --fingerprint BEBF7D2C
 
 2) gpg2 --export BEBF7D2C | gpg2 --homedir /media/michi/Backup/ --import
