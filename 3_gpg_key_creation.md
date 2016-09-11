@@ -52,6 +52,7 @@ cryptsetup close usbstick
 Your master key is used to sign, "issue" and revoke your subkeys. It makes handling of key creation / revokation much easyer and (quite) painless.
 
 ```gpg2 --gen-key```
+
 1. Choose ```4``` RSA (sign only)
 2. Key length ```4096``` (always 4096)
 3. Key is 3 Years valid (can be extended later): ```3y``` and confirm with ```Yes```
@@ -70,6 +71,7 @@ Maximum key sizes (RSA):
 - Yubikey 4: 4096
 
 ```gpg2 --expert --edit-key em@i.l``` (primary email address)
+
 1. Create signing subkey
   1. ```addkey```
   2. Key type: ```4``` (RSA sign only)
@@ -97,6 +99,7 @@ Maximum key sizes (RSA):
 Add more UIDs (email addresses). Your primary address inserted above is already present and should not be entered another time.
 
 ```gpg2 --expert --edit-key em@i.l``` (primary email address)
+
 1. ```adduid```
 2. Insert ```Firstname Surname```
 3. Insert your additional email address ```em@i.l```
@@ -107,6 +110,7 @@ Add more UIDs (email addresses). Your primary address inserted above is already 
 Change trust level for the new UIDs:
 
 ```gpg2 --expert --edit-key em@i.l``` (primary email address)
+
 1. ```uid <NUMBER>``` for each of your created subkeys (TODO: How to display selection etc?)
 2. Set the ```trust``` level for your addresses
 3. Give your adresses ultimate trust: ```5```
@@ -134,7 +138,6 @@ It is essential that the exports above worked, otherwise do NOT proceed with the
 
 Before transfering you subkeys to your yubikey, it is recommended to remove the master key. As there is no command to do that directly, take following steps:
 
-
 1. Export secret subkeys only ```gpg2 --export-secret-subkeys --output /tmp/secret_subkeys.gpg```
 2. Remove all secret keys from keyring ```gpg2 --delete-secret-key em@i.l``` (with your primary email)
 3. Import the secret subkeys ```gpg2 --import /tmp/secret_subkeys.gpg```
@@ -144,11 +147,13 @@ Before transfering you subkeys to your yubikey, it is recommended to remove the 
 ### Yubikey preparations
 
 #### Set Yubikey mode
+
 1. Open a terminal and type ```ykinfo -v```. If the Yubikey version is displayed, you can continue with the following steps.
 2. Set the Yubikey mode: ```ykpersonalize -m82```
 3. Confirm with ```yes``` (TODO: "yes" - really?)
 
 #### Set Yubikey pin 
+
 Yubikey PINs may (and should) contain all characters (and not just 0-9).  
 Your Yubikey has following default pins:
 
@@ -156,6 +161,7 @@ Your Yubikey has following default pins:
 - admin PIN: ```12345678```
 
 ```gpg2 --card-edit```
+
 1. Change to admin mode: ```admin```
 2. ```passwd```
 3. Set new PIN. This PIN is for your daily use; make shure it is >15 characters, and that you can memorize it.
@@ -165,6 +171,7 @@ Your Yubikey has following default pins:
 TODO: The last section should be documented in a more step-by-step style.
 
 #### Transfer subkeys on Yubikey
+
 1. Reinsert your Yubikey and make shure it is ready with ```gpg2 --card-status```
 2. ```gpg2 --expert --edit-key em@i.l``` (primary email address)
 3. ```toggle``` public/privat key mode
@@ -177,7 +184,7 @@ TODO: The last section should be documented in a more step-by-step style.
 
 #### Export public key to unencrypted USB drive.
 
-1. Delete the secret keys from your keyring: --delete-secret-keys em@i.l``` (primary email address)
+1. Delete the secret keys from your keyring: ```gpg2 --delete-secret-keys em@i.l``` (primary email address)
 2. Export Public keys ```gpg2 --armor --export em@i.l > /mnt/insecure_usb/publickey.pem``` (primary email address)
 
 
