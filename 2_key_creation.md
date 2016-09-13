@@ -1,53 +1,6 @@
 # GPG key creation
 
-## Prerequisities
-
-- 1 or (better) more USB drives that permanently hold your privat keys.
-- 1 USB drive to transfer data from your safe to your insecure environment
-- Yubikey 4 or Yubikey Neo
-- Tails Live CD https://tails.boum.org/
-- Computer with CD drive (and no plugged network cable)
-
-### Secure Tails environment
-
-To create your keys, it is a good idea to have a live linux like Tails. Download the Tails ISO-file from the [Tails website](https://tails.boum.org) and burn it to a CD-ROM; remove any network cables, boot the CD and voilá, you have a secure environment.
-
-## Encrypted usb drive
-
-In case you loose your Yubikey, or need to do operations with your master key (like signing a key), it is important to have backups of your private keys.
-
-It is recommended to create two USB-sticks to store your key in two physical separate places.
-
-### Fill USB-stick with random data
-
-Overwrite USB disks with random data
-```bash
-cryptsetup open --type plain /dev/sdb container --key-file /dev/random
-# check whether /dev/mapper/container exists
-dd if=/dev/zero of=/dev/mapper/container
-
-cryptsetup close container
-```
-
-### Create Encrypted partition
-
-```bash
-cryptsetup -v --cipher aes-xts-plain64 --key-size 512 --hash sha512 --iter-time 5000 --use-random --verify-passphrase luksFormat /dev/sdb
-
-cryptsetup open --type luks /dev/sdb usbstick
-
-mkfs.ext4 /dev/mapper/usbstick
-
-mkdir /mnt/usbstick && mount -t ext4 /dev/mapper/usbstick /mnt/usbstick
-
-# When you're done:
-umount /mnt/usbstick
-cryptsetup close usbstick
-```
-
-## Key creation
-
-### Create master key
+## Create master key
 
 Your master key is used to sign, "issue" and revoke your subkeys. It makes handling of key creation / revokation much easyer and (quite) painless.
 
@@ -63,7 +16,7 @@ Your master key is used to sign, "issue" and revoke your subkeys. It makes handl
 8.  Type passphrase (>20 random characters, make shure to store them savely (best on paper))
 
 
-### Create subkeys
+## Create subkeys
 
 Maximum key sizes (RSA):
 
@@ -94,7 +47,7 @@ Maximum key sizes (RSA):
   7. Confirm with ```yes```
 4. Save new subkeys with ```save```.
 
-### Add UIDs
+## Add UIDs
 
 Add more UIDs (email addresses). Your primary address inserted above is already present and should not be entered another time.
 
@@ -116,11 +69,11 @@ Change trust level for the new UIDs:
 3. Give your adresses ultimate trust: ```5```
 4. ```save```
 
-### TODO: Generate revokation certificates
+## TODO: Generate revokation certificates
 
 TODO.
 
-### Save keys on usb drive
+## Save keys on usb drive
 
 As recommended in the usb drive section, export the secret key on every of your drives.
 
@@ -134,7 +87,7 @@ sync
 
 It is essential that the exports above worked, otherwise do NOT proceed with the following step but resolve the issue first!
 
-### Remove private master key
+## Remove private master key
 
 Before transfering you subkeys to your yubikey, it is recommended to remove the master key. As there is no command to do that directly, take following steps:
 
@@ -189,118 +142,7 @@ TODO: The last section should be documented in a more step-by-step style.
 
 
 
-## Setup on your usual system
-
-### Set systemd environment variables
-
-In the following sections, we assume you are running a system with the `systemd` init daemon (like virtually all modern linux distributions do).
-
-Systemd has the possiblity to start daemons on the login or logout process of your user. To use the commands below, clean environment settings are required:
-
-```bash
-mkdir -p ~/.config/systemd/user/
-
-cat <<<"__EOF__" > ~/.config/systemd/user/
-[Unit]
-Description=User environment
-Before=default.target
-
-[Service]
-Type=oneshot
-ExecStart=-/usr/bin/systemctl --user set-environment \
-        GNUPGHOME=%h/.gnupg \
-        SSH_AUTH_SOCK=/run/user/`id --user`/gnupg/S.gpg-agent.ssh \
-        GPG_AGENT_INFO=/run/user/`id --user`/gnupg/S.gpg-agent.ssh
-
-[Install]
-WantedBy=default.target
-__EOF__
-
-systemctl --user enable env.service
-```
-
-TODO: This configuration is currently only testet on Fedora Linux...
-
-### TODO: GPG Configuration
-
-- recommended configuration of PGP
-- https://sks-keyservers.net/sks-keyservers.netCA.pem
-
-### Key updates with parcimonie.sh
-
-```parcimonie.sh``` is a script that periodically updates the GPG-public keys that are stored locally in a secure (and privacy aware) manner.
-
-```bash
-cat <<<'__EOF__' > .config/systemd/user/parcimonie.service
-[Unit]
-Description=GnuPG parcimonie key refresher
-
-[Service]
-ExecStart=/usr/bin/parcimonie.sh
-
-[Install]
-WantedBy=default.target
-__EOF__
-
-systemctl --user start parcimonie.service
-systemctl --user enable parcimonie.service
-```
-
-### GPG agent and scdaemon
-
-The GPG agent stores your Yubikey-PIN for some time, so that you don't have to type it every time you use it. In our setup, we also use this daemon for SSH-Authorization.
-
-The scdaemon handles the communication between the yubikey (SmartCard) and the gpg-daemon.
-
-```bash
-cat <<<'__EOF__' > ~/.gnupg/gpg-agent.conf 
-enable-ssh-support
-default-cache-ttl 900
-default-cache-ttl-ssh 900
-allow-loopback-pinentry
-__EOF__
-
-# Create & enable daemon
-cat <<<'__EOF__' > ~/.config/systemd/user/gpg-agent.service
-[Unit]
-Description=GnuPG private key agent
-IgnoreOnIsolate=true
-
-[Service]
-Type=forking
-ExecStart=/usr/bin/gpg-agent --daemon --enable-ssh-support
-Restart=on-abort
-
-[Install]
-WantedBy=default.target
-__EOF__
-
-systemctl --user start gpg-agent.service
-systemctl --user enable gpg-agent.service
-```
-
-```bash
-# TODO: What does this scdaemon configuration do exactly again?
-cat <<<'__EOF__' > ~/.gnupg/scdaemon.conf
-disable-ccid
-__EOF__
-
-# TODO: How is the extecution of this eventhandler configured?
-cat <<<'__EOF__' > ~/.gnupg/scd-event
-#!/bin/sh
-state=$8
-
-# Make shure that the scdaemon is exitet when the card is removed.
-# scdaemon has the bad habit to crash whenever you remove a card.
-if [ "$state" = "NOCARD" ]; then
-  pkill scdaemon
-fi
-__EOF__
-
-```
-
-
-### Import & Upload your public key to the keyserver
+## Import & Upload your public key to the keyserver
 
 1. Mount the USB drive with your public key to ```/mnt/insecure_usb/```
 2. Import your public key: ```gpg2 --import /mnt/insecure_usb/publickey.pem```
@@ -310,13 +152,3 @@ __EOF__
 6. ```save```
 7. Upload your key to the keyserver: ```gpg2 --send-keys em@i.l``` (primary email address)
 
-
-## Sources
-
-- yubikey: https://www.sidorenko.io/blog/2014/11/04/yubikey-slash-openpgp-smartcards-for-newbies/
-- yubikey: https://www.esev.com/blog/post/2015-01-pgp-ssh-key-on-yubikey-neo/
-- yubikey: https://www.yubico.com/2012/12/yubikey-neo-openpgp/
-- gpg-setup: https://emanuelduss.ch/2015/01/sicheres-gnupg-setup-primary-key-offline-speichern/
-- scdaemon: https://blog.josefsson.org/2015/01/02/openpgp-smartcards-and-gnome/
-- TODO?: https://blog.habets.se/2013/02/GPG-and-SSH-with-Yubikey-NEO
-- TODO?: https://www.whonix.org/wiki/Air_Gapped_OpenPGP_Key

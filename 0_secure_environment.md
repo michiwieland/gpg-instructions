@@ -1,1 +1,0 @@
-# TODO: Secure Tails environment
