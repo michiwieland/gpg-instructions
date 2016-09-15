@@ -213,11 +213,13 @@ In case you loose your Yubikey, or need to do operations with your master key (l
 
 It is recommended to create two USB disks to store your key in two physical separate places.
 
+To use the following commands, you must replace ```/dev/DRIVE``` with your USB disk's identifier (like ```/dev/sdb```). To find out, which letter your USB disk has, type the command ```lsblk``` and find the appropriate disk size.
+
 ### Fill USB disks with random data
 
 Overwrite USB disks with random data
 ```bash
-cryptsetup open --type plain /dev/sdb container --key-file /dev/random
+cryptsetup open --type plain /dev/DRIVE container --key-file /dev/random
 # check whether /dev/mapper/container exists
 dd if=/dev/zero of=/dev/mapper/container
 
@@ -227,9 +229,9 @@ cryptsetup close container
 ### Create encrypted partition
 
 ```bash
-cryptsetup -v --cipher aes-xts-plain64 --key-size 512 --hash sha512 --iter-time 5000 --use-random --verify-passphrase luksFormat /dev/sdb
+cryptsetup -v --cipher aes-xts-plain64 --key-size 512 --hash sha512 --iter-time 5000 --use-random --verify-passphrase luksFormat /dev/DRIVE
 
-cryptsetup open --type luks /dev/sdb usbdisk
+cryptsetup open --type luks /dev/DRIVE usbdisk
 
 mkfs.ext4 /dev/mapper/usbdisk
 
