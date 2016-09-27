@@ -81,7 +81,7 @@ Systemd has the possiblity to start daemons on the login or logout process of yo
 ```bash
 mkdir -p ~/.config/systemd/user/
 
-cat <<<"__EOF__" > ~/.config/systemd/user/
+cat <<"__EOF__" > ~/.config/systemd/user/
 [Unit]
 Description=User environment
 Before=default.target
@@ -205,7 +205,7 @@ __EOF__
 ```parcimonie.sh``` is a script that periodically updates the GPG-public keys that are stored locally in a secure (and privacy aware) manner.
 
 ```bash
-cat <<<'__EOF__' > .config/systemd/user/parcimonie.service
+cat <<'__EOF__' > ~/.config/systemd/user/parcimonie.service
 [Unit]
 Description=GnuPG parcimonie key refresher
 
@@ -227,7 +227,7 @@ The GPG agent stores your Yubikey-PIN for some time, so that you don't have to t
 The scdaemon handles the communication between the yubikey (SmartCard) and the gpg-daemon.
 
 ```bash
-cat <<<'__EOF__' > ~/.gnupg/gpg-agent.conf 
+cat <<'__EOF__' > ~/.gnupg/gpg-agent.conf 
 enable-ssh-support
 default-cache-ttl 900
 default-cache-ttl-ssh 900
@@ -235,7 +235,7 @@ allow-loopback-pinentry
 __EOF__
 
 # Create & enable daemon
-cat <<<'__EOF__' > ~/.config/systemd/user/gpg-agent.service
+cat <<'__EOF__' > ~/.config/systemd/user/gpg-agent.service
 [Unit]
 Description=GnuPG private key agent
 IgnoreOnIsolate=true
@@ -255,12 +255,12 @@ systemctl --user enable gpg-agent.service
 
 ```bash
 # TODO: What does this scdaemon ccid configuration do exactly again?
-cat <<<'__EOF__' > ~/.gnupg/scdaemon.conf
+cat <<'__EOF__' > ~/.gnupg/scdaemon.conf
 disable-ccid
 __EOF__
 
 # TODO: How is the extecution of this eventhandler configured?
-cat <<<'__EOF__' > ~/.gnupg/scd-event
+cat <<'__EOF__' > ~/.gnupg/scd-event
 #!/bin/sh
 state=$8
 
