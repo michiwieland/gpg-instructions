@@ -70,7 +70,7 @@ yaourt -S parcimonie-sh-git
 sudo pacman -S pass
 ```
 
-## GPG-Configuration
+## Software configuration
 
 ### Set systemd environment variables
 
@@ -98,6 +98,7 @@ WantedBy=default.target
 __EOF__
 
 systemctl --user enable env.service
+systemctl --user start env.service
 ```
 
 TODO: This configuration is currently only testet on Fedora Linux...
@@ -277,12 +278,16 @@ __EOF__
 
 To create your keys, you should use a isolated system that is not bound to any maleware that may be on your computer already. Tails is a linux live system that is specifically designed for such tasks.
 
+### Get Tails up & running
+
 Download the Tails ISO-file from the [Tails website](https://tails.boum.org) and burn it to a CD-ROM. After that, boot the system from the disk. (you could also write the ISO-image to a USB drive if you don't have a CD drive).
 
 Once started, define your root-password, login and open a system shell. Get root with `sudo -s` and your just choosen password.
 
 
 ### Install software
+
+As a first step, save this documentation in a local folder of your Tails system. This allows you to access it later, when you are disconnected from the internet.
 
 TODO: Paket names are from Fedora, must be adopted to debian. (possibly additional repo for yubikey required)
 
@@ -299,6 +304,9 @@ apt-get install yubikey-personalization-gui ykpers ykclient
 
 After you installed this software from the internet, please remove the network connection (if possible by physical plugging).
 
+### Configuration
+
+You should apply the configurations from the previous section "Software configuration" also to your Tails user (see above).
 
 ## Encrypted usb drive
 
