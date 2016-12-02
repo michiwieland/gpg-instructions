@@ -81,7 +81,7 @@ Systemd has the possiblity to start daemons on the login or logout process of yo
 ```bash
 mkdir -p ~/.config/systemd/user/
 
-cat <<"__EOF__" > ~/.config/systemd/user/
+cat <<"__EOF__" > ~/.config/systemd/user/env.service
 [Unit]
 Description=User environment
 Before=default.target
